@@ -35,6 +35,11 @@ const server = http.createServer ((req, res) => {
     case '/entry/post/add':
       postNewEntry (req, res);
       break;
+    case '/entry/delete':
+      req.on('data', (data) => {
+        deleteDeleteLogs (req, res, data);
+      });
+      break;
     default:
       res.end ();
       break;
@@ -69,7 +74,7 @@ function showTopPage (req, res) {
     database: DB_NAME
   }).then ((conn) => {
     connection = conn;
-    return connection.query ("SELECT * FROM entry");
+    return connection.query ("SELECT * FROM entry ORDER BY updated_at DESC, id");
   }).then ((rows) => {
     entries = rows;
     return connection.query ('SELECT * FROM tag');
@@ -143,6 +148,63 @@ function showPostPage (req, res) {
 
 // 新規投稿をする
 function postNewEntry (req, res) {
-  // トップページに戻る
+  req.on('data', (data) => {
+    // 入力内容を取得し、
+    const decoded = decodeURIComponent(data);
+    const querystring = require('querystring');
+    let parsedResult = querystring.parse(decoded);
+    let connection;
+
+  // DBに登録する
+  mysql.createConnection ({
+    host: 'localhost',
+    user: 'root',         // 'root'
+    password: '',   // ''
+    database: DB_NAME,
+  }).then ((conn) => {
+    connection = conn;
+    return connection.query ('INSERT INTO `entry` (`user_id`,`title`,`tag_id`,`text`) VALUES(?,?,?,?)',
+                      [
+                        1,
+                        parsedResult['title'],
+                        parsedResult['tag'],
+                        parsedResult['entry'],
+                      ]);
+  }).then ((result) => {
+    connection.end ();
+
+    // トップページに戻る
   showTopPage (req, res);
+
+  }).catch ((error) => {
+    console.log (error);
+    });
+  });
+}
+
+
+// 削除する
+function deleteDeleteLogs (req, res, data)
+{
+  let connection;
+  
+  const decoded = decodeURIComponent(data);
+  const parsedResult = querystring.parse(decoded);
+
+  const item = parsedResult['entryid'];
+  
+  mysql.createConnection ({
+    host: 'localhost',
+    user: 'root',         // 'root'
+    password: '',   // ''
+    database: DB_NAME,
+  }).then ((conn) => {
+    connection = conn;
+    return connection.query ('DELETE FROM entry WHERE id = ?', [item]);
+  }).then (() => {
+    connection.end ();
+    showTopPage(req, res);
+  }).catch ((error) => {
+    console.log (error);
+  });
 }

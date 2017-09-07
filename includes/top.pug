@@ -40,6 +40,7 @@ html(lang="ja")
                     input(class="btn btn-warning btn-sm" type="submit" value="編集")
                   form(method="post" action="/entry/delete")
                     //- ハリボテ
+                    input(type="hidden" name="entryid" value=entry.id)
                     input(class="btn btn-danger btn-sm" type="submit" value="削除")
 
           // ページネーション
