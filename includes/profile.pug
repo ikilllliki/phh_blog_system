@@ -3,31 +3,47 @@ doctype html
 html(lang="ja")
   head
     meta(charset="UTF-8")
-    link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css", integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M", crossorigin="anonymous")
+    link(rel="stylesheet", href="/bootstrap.css")
     style
       include css/style.css
+    script(src="http://code.jquery.com/jquery-1.8.2.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jScrollPane/2.0.23/script/jquery.jscrollpane.min.js")
+    script(src="/lifegame.js")
+    script $(document).ready(function() {$("#WhatsNewDetailContainer").jScrollPane();return lifeGame = new Lifegame($("#Container"), $("#LifeContainer"));});
     title プロフィール
   body
     //- include に関しては次のドキュメントを参照のこと
     //- https://pugjs.org/language/includes.html
     include header.pug
+
+    div(id="Container" class="fullContainer")
+      div(id="LifeContainer")
     
-    div(class="container")
-      h1 プロフィール
-      form(action="/profile/update", method="post")
-        div(class="row")
-          div(class="col") 名前
-          input(class="col form-control" name="name" type="text" value=profile.name)
-        div(class="row")
-          div(class="col") ニックネーム
-          input(class="col form-control" name="nickname" type="text" value=profile.nickname)
-        div(class="row")
-          div(class="col") 血液型
-          div(class="col form-control") #{profile.type}
-        div(class="row")
-          div(class="col") 誕生日
-          input(class="col form-control" name="birthday" type="date" value=profile.birthday)
-        div(class="row")
-          div(class="col")
-            //- ハリボテ
-            input(class="btn btn-warning" type="submit", value="変更")
+      div(class="container")
+        h1 プロフィール
+        form(action="/profile/update", method="post")
+          div(class="row")
+            div(class="") 名前
+            input(class="form-control" name="name" type="text" value=profile.name)
+          div(class="row")
+            div(class="") ニックネーム
+            input(class="form-control" name="nickname" type="text" value=profile.nickname)
+          div(class="row")
+            div(class="") 血液型
+            select(class="form-control" name="blood_type_id")
+                each val in blood_types
+                  case val.id
+                    when profile.blood_type_id
+                      option(value=val.id selected) #{val.type}
+                    default
+                      option(value=val.id) #{val.type}
+                    //- #{val.type}
+          div(class="row")
+            div(class="") 誕生日
+            input(class="form-control" name="birthday" type="date" value=profile.birthday)
+          div(class="row")
+            div(class="")
+              //- ハリボテ
+              br
+              input(class="btn btn-warning" type="submit", value="変更")

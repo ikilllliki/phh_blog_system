@@ -9,10 +9,41 @@ const DB_USER = process.env['PHH_DB_USER'] || 'root';
 const DB_PASSWD = process.env['PHH_DB_PASSWD'] || '';
 
 const server = http.createServer ((req, res) => {
+  if (req.method == 'GET' && req.url == '/bootstrap.css') {
+    res.writeHead (200, {
+      'Content-Type': 'text/css; charset=utf-8'
+    });
+    const fs = require('fs');
+    const rs = fs.createReadStream('./bootstrap.css');
+    rs.pipe(res);
+    return;
+  }
+
+  if (req.method == 'GET' && req.url == '/lifegame.js') {
+    res.writeHead (200, {
+      'Content-Type': 'text/javascript; charset=utf-8'
+    });
+    const fs = require('fs');
+    const rs = fs.createReadStream('./lifegame.js');
+    rs.pipe(res);
+    return;
+  }
+
+  if (req.method == 'GET' && req.url == '/festisite_lego.png') {
+    res.writeHead (200, {
+      'Content-Type': 'image/png; charset=utf-8'
+    });
+    const fs = require('fs');
+    const rs = fs.createReadStream('./festisite_lego.png');
+    rs.pipe(res);
+    return;
+  }
+    
   res.writeHead (200, {
     'Content-Type': 'text/html; charset=utf-8'
   });
 
+  deleteOldLogs ();
   switch (req.method) {
   case 'GET':
     switch (req.url) {
@@ -38,6 +69,16 @@ const server = http.createServer ((req, res) => {
     case '/entry/delete':
       req.on('data', (data) => {
         deleteDeleteLogs (req, res, data);
+      });
+      break;
+    case '/profile/update':
+      req.on('data', (data) => {
+        profileUpdate (req, res, data);
+      });
+      break;
+    case '/entry/edit':
+      req.on('data', (data) => {
+        postUpdate (req, res, data);
       });
       break;
     default:
@@ -101,6 +142,10 @@ function showTopPage (req, res) {
 // プロフィールページを表示する
 function showProfilePage  (req, res) {
   let connection;
+  let user;
+  let blood_types;
+  let date;
+  let blood_type_id;
 
   mysql.createConnection({
     host: 'localhost',
@@ -109,14 +154,39 @@ function showProfilePage  (req, res) {
     database: DB_NAME
   }).then ((conn) => {
     connection = conn;
-    return connection.query ('SELECT name, nickname, type, birthday, updated_at FROM user AS p INNER JOIN blood_type AS b ON p.blood_type_id=b.id');
+    return connection.query ('SELECT name, nickname, blood_type_id, birthday, updated_at FROM user');
   }).then ((rows) => {
+    // console.log(rows);
+    user = rows[0];
+    
+// 誕生日
+    let oldDate = rows[0].birthday
+    let y = oldDate.getFullYear();
+    let m = oldDate.getMonth() + 1;
+    let d = oldDate.getDate();
+
+    if (m < 10) {
+      m = '0' + m;
+    }
+    if (d < 10) {
+      d = '0' + d;
+    }
+    date = y + "-" + m + "-" + d
+    user.birthday = date;
+
+    return connection.query ('SELECT * FROM blood_type;')
+  }).then ((rows) => {
+    blood_types = rows;
+    // console.log(rows)
+    // console.log(blood_types);
+
     res.write(pug.renderFile('./includes/profile.pug', {
-      profile: rows[0],
+      profile: user, blood_types: blood_types
     }));
 
     connection.end ();
     res.end ();
+
   }).catch ((error) => {
     console.log (error);
   });;
@@ -141,6 +211,7 @@ function showPostPage (req, res) {
                              }));
     connection.end ();
     res.end ();
+
   }).catch ((error) => {
     console.log (error);
   });
@@ -174,23 +245,44 @@ function postNewEntry (req, res) {
     connection.end ();
 
     // トップページに戻る
-  showTopPage (req, res);
-
-  }).catch ((error) => {
-    console.log (error);
+    showTopPage (req, res); 
+    }).catch ((error) => {
+      console.log (error);
     });
   });
 }
 
-
-// 削除する
-function deleteDeleteLogs (req, res, data)
-{
+// 投稿編集
+function postUpdate (req, res, data) {
   let connection;
-  
+
   const decoded = decodeURIComponent(data);
   const parsedResult = querystring.parse(decoded);
+  const user_id = parsedResult['user_id'];
+  const title = parsedResult['title'];
+  const tag_id = parsedResult['tag_id'];
 
+  mysql.createConnection ({
+    host: 'localhost',
+    user: 'root',         // 'root'
+    password: '',   // ''
+    database: DB_NAME,
+  }).then ((conn) => {
+    connection = conn;
+    return connection.query ('UPDATE entry SET user_id = ?, title = ?, tag_id = ?',[user_id, title, tag_id]);
+  }).then (() => {
+    connection.end ();
+    showTopPage(req, res);
+  }).catch ((error) => {
+    console.log (error);
+  });
+}
+
+// 投稿削除
+function deleteDeleteLogs (req, res, data) {
+  let connection;
+  const decoded = decodeURIComponent(data);
+  const parsedResult = querystring.parse(decoded);
   const item = parsedResult['entryid'];
   
   mysql.createConnection ({
@@ -204,6 +296,53 @@ function deleteDeleteLogs (req, res, data)
   }).then (() => {
     connection.end ();
     showTopPage(req, res);
+  }).catch ((error) => {
+    console.log (error);
+  });
+}
+
+// 24時間で投稿削除
+function deleteOldLogs () {
+  let connection;
+  let yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);  
+  mysql.createConnection ({
+    host: 'localhost',
+    user: 'root',         // 'root'
+    password: '',   // ''
+    database: DB_NAME,
+  }).then ((conn) => {
+    connection = conn;
+    return connection.query ('DELETE FROM entry WHERE created_at < ?', [yesterday]);
+  }).then (() => {
+    connection.end ();
+  }).catch ((error) => {
+    console.log (error);
+  });
+}
+
+// プロフィール変更
+function profileUpdate (req, res, data) {
+  let connection;
+
+  const decoded = decodeURIComponent(data);
+  const parsedResult = querystring.parse(decoded);
+  const name = parsedResult['name'];
+  const nickname = parsedResult['nickname'];
+  const blood_type_id = parsedResult['blood_type_id'];
+  const birthday = parsedResult['birthday'];
+
+  mysql.createConnection ({
+    host: 'localhost',
+    user: 'root',         // 'root'
+    password: '',   // ''
+    database: DB_NAME,
+  }).then ((conn) => {
+    connection = conn;
+    return connection.query ('UPDATE user SET name = ?, nickname = ?, blood_type_id = ?, birthday = ?',[name, nickname, blood_type_id, birthday]);
+  }).then (() => {
+    connection.end ();
+    showProfilePage(req, res);
   }).catch ((error) => {
     console.log (error);
   });

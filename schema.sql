@@ -26,6 +26,7 @@ CREATE TABLE `blood_type` (
        `type` VARCHAR(8) NOT NULL		     -- 血液型
 );
 -- データを挿入する
+INSERT INTO `blood_type` (`type`) VALUES ('Select');
 INSERT INTO `blood_type` (`type`) VALUES ('Ａ型');
 INSERT INTO `blood_type` (`type`) VALUES ('Ｂ型');
 INSERT INTO `blood_type` (`type`) VALUES ('ＡＢ型');

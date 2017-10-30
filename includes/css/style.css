@@ -2,16 +2,17 @@
     background-color: #00A6CC;
 }
 
-header{
+header {
+    text-align: center;
     font-family: 'PixelMplus12', sans-serif;
-    background-image:url(https://s-media-cache-ak0.pinimg.com/originals/67/6c/43/676c434e08b9a3708e02c22f1c2a3f42.gif);
+    background-image:url(https://s-media-cache-ak0.pinimg.com/originals/85/80/80/8580801283e2775cb0b0388b508b6ce6.gif);
     background-size: cover;
 }
 
 
-body{
+body {
     font-family: 'PixelMplus12', sans-serif;
-    background-color: #00FF10;
+    background-color: #40FF00;
 }
 
 
@@ -19,24 +20,36 @@ body{
 /* https://s-media-cache-ak0.pinimg.com/originals/fa/73/7b/fa737b8f99636afc99e1de33c3fa70f7.gif ちかちか*/
 /* http://livedoor.blogimg.jp/tsutsumikiyoaki/imgs/8/2/82c62654.gif ぐるぐる*/
 /* http://img.izismile.com/img/img4/20110201/1000/stunning_animated_gifs_13.gif くるくる */
+/* https://s-media-cache-ak0.pinimg.com/originals/67/6c/43/676c434e08b9a3708e02c22f1c2a3f42.gif pinkpurple */
+/* https://s-media-cache-ak0.pinimg.com/originals/66/c9/88/66c988b6acf0c4b0f0d73dbb73ae302f.gif　６ */
+/* https://s-media-cache-ak0.pinimg.com/originals/85/80/80/8580801283e2775cb0b0388b508b6ce6.gif　カラフル */
 
+h1 {
+    text-align: center;
+    color: #FF0004;
+    font-size: 40pt;
+    text-shadow: 0 2px 0 rgb(22, 0, 255);
+    position: relative;
+    z-index: 100;
+}
 
 div {
     color: #FF0004;
     font-size: 15pt;
-    text-shadow: 0 2px 0 rgb(22, 0, 255)
+    text-shadow: 0 2px 0 rgb(22, 0, 255);
+    z-index: 1;
 }
 
-h1{
-    text-align: center;
-    color: #FF0004;
-    font-size: 40pt;
-    text-shadow: 0 2px 0 rgb(22, 0, 255)
-}
-
-a{
+a {
     color: #FF0004;
     font-size: 15pt;
-    text-shadow: 0 2px 0 rgb(22, 0, 255)
+    text-shadow: 0 2px 0 rgb(22, 0, 255);
 }
 
+select {
+    z-index: 1;
+}
+
+input {
+    z-index: 1;
+}
